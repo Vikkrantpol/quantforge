@@ -1,0 +1,109 @@
+QuantForge Architecture
+=======================
+
+1. Purpose
+- QuantForge is a local-first trading research platform for strategy backtesting, OHLCV data download, result visualization, and optional broker connectivity.
+- It is designed for research workflows, not low-latency live execution.
+
+2. High-Level Stack
+- Frontend: React + Vite
+- Backend: FastAPI
+- Analytics: Pandas + NumPy
+- Data sources: yfinance by default, optional broker adapters
+- Storage: SQLite for saved history, CSV files for sample/downloaded data
+
+3. Main Runtime Components
+
+Frontend
+- App shell in frontend/src/App.jsx
+- Navigation and recent history in frontend/src/components/Sidebar.jsx
+- Main research form in frontend/src/components/QuantLab.jsx
+- Results view in frontend/src/components/ResultsDashboard.jsx
+- History view in frontend/src/components/HistoryDashboard.jsx
+- API client in frontend/src/api/client.js
+
+Backend API
+- Entry point: backend/main.py
+- HTTP routes: backend/api/routes.py
+- Route layer starts background tasks, logs progress, validates inputs, and returns results/history
+
+Core Backend Modules
+- Data ingestion: backend/modules/data_ingestion.py
+  Loads OHLCV data from CSV, yfinance, or broker adapters
+- Strategy engine: backend/modules/strategy_engine.py
+  Generates signals for EMA crossover, RSI mean reversion, breakout, and MACD
+- Backtest engine: backend/modules/backtest_engine.py
+  Simulates fills, slippage, commissions, position sizing, stop-loss, and equity curve
+- Metrics engine: backend/modules/metrics_engine.py
+  Computes CAGR, drawdown, Sharpe, Sortino, Calmar, win rate, expectancy, and related stats
+- History manager: backend/modules/history_manager.py
+  Persists completed backtests into SQLite and loads history summaries/details
+- Broker connector: backend/modules/broker_connector.py
+  Optional adapters for Alpaca, Zerodha, and Fyers
+
+Storage and Files
+- backend/data/history.db
+  SQLite database for saved backtest history
+- backend/data/*.csv
+  Built-in sample datasets, including BTC-USD sample data
+- backend/temp/*.csv
+  Downloaded/exported data files
+
+4. Main User Flows
+
+Backtest Flow
+1. User configures symbol, period, interval, strategy, and execution settings in Quant Lab.
+2. Frontend sends POST /api/backtest.
+3. Backend route resolves dates and loads OHLCV data.
+4. Strategy engine computes indicator columns and signal series.
+5. Backtest engine simulates trades bar by bar.
+6. Metrics engine computes portfolio statistics from trades and equity curve.
+7. History manager stores the result payload.
+8. Frontend polls task status, then renders results and trade history.
+
+Data Download Flow
+1. User configures symbol, period, interval, and source in Data Fetch.
+2. Frontend sends POST /api/download-data.
+3. Backend loads OHLCV data from yfinance or broker.
+4. Backend writes a CSV file to temp storage.
+5. Frontend polls status and then downloads the CSV.
+
+History Reload Flow
+1. User opens History or clicks a recent-history item in the sidebar.
+2. Frontend requests stored summaries and selected history details.
+3. Backend loads persisted payload from SQLite.
+4. Frontend restores metrics, equity curve, indicators, and trade log.
+
+5. Execution Model
+- on_close mode:
+  Signals are confirmed using closed-bar values and trades fill on the bar close.
+- intrabar mode:
+  Breakout fills when trigger levels are touched within the bar.
+  EMA and MACD estimate the crossover price mathematically from prior indicator state and current OHLC range.
+- Important limitation:
+  Intrabar behavior is still an OHLC approximation. Exact tick order inside a candle is not available.
+
+6. Data and State Model
+- Request/response and progress state live in the FastAPI process for active jobs.
+- Completed backtest results are persisted into SQLite through history_manager.
+- Frontend keeps the current task state and last loaded results in React state.
+
+7. Architectural Strengths
+- Clear module split between data loading, signal generation, simulation, metrics, and persistence
+- Fast local iteration with Vite + FastAPI
+- Supports stocks, indices, India tickers, and crypto-style Yahoo symbols
+- Can run fully without broker credentials using yfinance or local CSVs
+
+8. Current Constraints
+- Background jobs are in-process, so this is not horizontally scaled job infrastructure
+- SQLite is suitable for local/single-user usage, not high-concurrency multi-tenant workloads
+- No auth, tenancy, or role model yet
+- Broker integrations are optional and adapter-specific
+- Intrabar simulation remains candle-based, not tick-accurate
+
+9. Recommended Next Architecture Steps
+- Add a proper .gitignore and top-level LICENSE
+- Separate generated/runtime files from tracked source
+- Move long-running jobs to a task queue if multi-user support is needed
+- Add typed API schemas and versioned result models
+- Add deployment packaging for backend and frontend

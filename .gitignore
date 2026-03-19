@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.mypy_cache/
+
+# Environment files
+.env
+.env.local
+
+# Runtime state
+.pids
+
+# Backend generated data
+backend/data/*.db
+backend/data/yfinance_cache/
+backend/*.log
+backend/temp/
+
+# Frontend generated files
+frontend/node_modules/
+frontend/dist/
+
+# Build and coverage artifacts
+coverage/
+htmlcov/
