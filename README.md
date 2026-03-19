@@ -1,5 +1,6 @@
 # QuantForge: Multi-Market-Multi-Asset Algo Strategy Lab
 
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Vikkrant_Pol-0A66C2?style=flat-square&logo=linkedin)](https://linkedin.com/in/vikkrantpol)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688?logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
