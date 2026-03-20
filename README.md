@@ -15,7 +15,7 @@
 
 QuantForge is a full-stack, multi-market, multi-asset strategy research platform built for backtesting equities and crypto across multiple timeframes, time periods, and strategy styles from one unified interface.
 
-Built by **Vikkrant**.
+Built and written by **Vikkrant** himself.
 
 ## Strongest Positioning
 
@@ -85,20 +85,35 @@ Built by **Vikkrant**.
 
 ## Screenshots
 
-Add product screenshots in [docs/screenshots](./docs/screenshots/README.md).
+### Quant Lab Workspace
 
-Suggested README or GitHub gallery captures:
+The main research surface is built for fast multi-market iteration across symbols, timeframes, strategies, and execution assumptions.
 
-- `01-quant-lab-overview.png` for the main multi-market backtest workspace
-- `02-live-backtest-terminal.png` for the running job and terminal log experience
-- `03-results-overview-dashboard.png` for performance metrics and headline results
-- `04-results-charts-equity-drawdown.png` for the charts tab
-- `05-results-trade-log.png` for executed trades and PnL review
-- `06-history-dashboard.png` for saved backtest history
-- `07-data-fetch-workspace.png` for the data acquisition flow
-- `08-broker-config-fyers.png` for broker setup
+![Quant Lab Workspace](docs/screenshots/01-quant-lab-overview.png)
 
-Use one screenshot per product story. Keep them sharp, data-rich, and free of real secrets.
+### Results and Performance Analytics
+
+QuantForge is designed to surface headline performance metrics, risk numbers, and strategy-level outcome analysis in one place.
+
+![Results Overview Dashboard](docs/screenshots/03-results-overview-dashboard.png)
+
+### Charts and Equity Research View
+
+The charts workspace is where equity curve, drawdown behavior, and visual strategy review come together for deeper analysis.
+
+![Charts and Equity Drawdown](docs/screenshots/04-results-charts-equity-drawdown.png)
+
+### Saved Research History
+
+Every run can be reopened from local SQLite-backed history so research does not disappear after a single session.
+
+![History Dashboard](docs/screenshots/06-history-dashboard.png)
+
+### Broker Connectivity
+
+QuantForge also includes broker connectivity as part of the all-in-one research workflow.
+
+![Broker Configuration](docs/screenshots/08-broker-config-fyers.png)
 
 ## Quick Start
 
@@ -187,40 +202,6 @@ Bundled data includes:
 
 These are useful for validating strategy logic and UI behavior without waiting on external providers.
 
-## Project Structure
-
-```text
-quantforge/
-|- .env.example
-|- .gitignore
-|- LICENSE
-|- CONTRIBUTING.md
-|- README.md
-|- docs/
-|  |- screenshots/
-|  |  |- README.md
-|- run.sh
-|- backend/
-|  |- main.py
-|  |- config.py
-|  |- api/routes.py
-|  |- modules/
-|  |  |- backtest_engine.py
-|  |  |- broker_connector.py
-|  |  |- data_ingestion.py
-|  |  |- history_manager.py
-|  |  |- metrics_engine.py
-|  |  |- strategy_engine.py
-|  |- tests/test_all.py
-|- frontend/
-|  |- package.json
-|  |- vite.config.js
-|  |- src/
-|  |  |- App.jsx
-|  |  |- api/client.js
-|  |  |- components/
-```
-
 ## Testing
 
 Backend regression suite:
@@ -250,7 +231,7 @@ Current backend coverage includes `85` passing tests across data ingestion, stra
 
 ## Credit
 
-QuantForge was created, designed, and built by **Vikkrant**. The product vision, system direction, and project credit belong to him.
+QuantForge was created, designed, and built by **Vikkrant**. This README was also written by Vikkrant himself, and the product vision, system direction, and project credit belong to him.
 
 ## License
 
