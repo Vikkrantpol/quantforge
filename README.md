@@ -8,7 +8,7 @@
 ![Markets](https://img.shields.io/badge/Markets-India%20%7C%20US%20%7C%20Crypto-0EA5E9)
 ![Assets](https://img.shields.io/badge/Assets-Equities%20%7C%20Crypto-14B8A6)
 ![Storage](https://img.shields.io/badge/Storage-SQLite-003B57?logo=sqlite&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-83%20passed-22C55E)
+![Tests](https://img.shields.io/badge/tests-85%20passed-22C55E)
 ![License](https://img.shields.io/badge/license-MIT-111827)
 
 > Multi-asset-Multi Market-Multi strategy all in one backtesting algo trading research platform.
@@ -82,6 +82,23 @@ Built by **Vikkrant**.
 - Reopen saved reports from History
 - Export results as JSON
 - API-backed job progress terminal
+
+## Screenshots
+
+Add product screenshots in [docs/screenshots](./docs/screenshots/README.md).
+
+Suggested README or GitHub gallery captures:
+
+- `01-quant-lab-overview.png` for the main multi-market backtest workspace
+- `02-live-backtest-terminal.png` for the running job and terminal log experience
+- `03-results-overview-dashboard.png` for performance metrics and headline results
+- `04-results-charts-equity-drawdown.png` for the charts tab
+- `05-results-trade-log.png` for executed trades and PnL review
+- `06-history-dashboard.png` for saved backtest history
+- `07-data-fetch-workspace.png` for the data acquisition flow
+- `08-broker-config-fyers.png` for broker setup
+
+Use one screenshot per product story. Keep them sharp, data-rich, and free of real secrets.
 
 ## Quick Start
 
@@ -173,12 +190,15 @@ These are useful for validating strategy logic and UI behavior without waiting o
 ## Project Structure
 
 ```text
-Backtesting_trading-platform/
+quantforge/
 |- .env.example
 |- .gitignore
 |- LICENSE
 |- CONTRIBUTING.md
 |- README.md
+|- docs/
+|  |- screenshots/
+|  |  |- README.md
 |- run.sh
 |- backend/
 |  |- main.py
@@ -216,7 +236,7 @@ cd frontend
 npm run build
 ```
 
-Current backend coverage includes `83` passing tests across data ingestion, strategy rules, execution logic, metrics, history, and API behavior.
+Current backend coverage includes `85` passing tests across data ingestion, strategy rules, execution logic, metrics, history, and API behavior.
 
 ## Tech Stack
 
