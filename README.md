@@ -83,11 +83,6 @@ Built by **Vikkrant**.
 - Export results as JSON
 - API-backed job progress terminal
 
-## Architecture Docs
-
-- [architectur.txt](./architectur.txt)
-- [architecture_block_diagram.md](./architecture_block_diagram.md)
-
 ## Quick Start
 
 ```bash
@@ -184,8 +179,6 @@ Backtesting_trading-platform/
 |- LICENSE
 |- CONTRIBUTING.md
 |- README.md
-|- architectur.txt
-|- architecture_block_diagram.md
 |- run.sh
 |- backend/
 |  |- main.py

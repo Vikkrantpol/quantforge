@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -35,6 +35,7 @@ router = APIRouter(prefix="/api")
 # In-memory task store
 # ─────────────────────────────────────────────────────────────
 _tasks: Dict[str, Dict] = {}  # task_id -> {status, logs, progress, results, error}
+_LOCALHOSTS = {"127.0.0.1", "::1", "localhost", "testclient"}
 
 
 def _new_task() -> str:
@@ -48,6 +49,17 @@ def _new_task() -> str:
         "created_at": datetime.utcnow().isoformat(),
     }
     return task_id
+
+
+def _is_local_request(request: Request) -> bool:
+    host = getattr(getattr(request, "client", None), "host", "") or ""
+    return host in _LOCALHOSTS or host.startswith("127.")
+
+
+def _assert_local_broker_access(request: Request):
+    if _is_local_request(request):
+        return
+    raise HTTPException(403, "Broker and server-side credential endpoints are restricted to localhost for security.")
 
 
 def _log(task_id: str, msg: str, progress: int = None):
@@ -421,7 +433,9 @@ def _run_backtest_task(task_id: str, req: BacktestRequest):
 
 
 @router.post("/backtest")
-def start_backtest(req: BacktestRequest):
+def start_backtest(req: BacktestRequest, request: Request):
+    if req.source == "broker" or req.broker:
+        _assert_local_broker_access(request)
     task_id = _new_task()
     t = threading.Thread(target=_run_backtest_task, args=(task_id, req), daemon=True)
     t.start()
@@ -498,7 +512,9 @@ def _run_download_task(task_id: str, req: DownloadRequest):
 
 
 @router.post("/download-data")
-def start_download(req: DownloadRequest):
+def start_download(req: DownloadRequest, request: Request):
+    if req.source == "broker" or req.broker:
+        _assert_local_broker_access(request)
     task_id = _new_task()
     t = threading.Thread(target=_run_download_task, args=(task_id, req), daemon=True)
     t.start()
@@ -547,7 +563,8 @@ def download_csv(task_id: str):
 # ────── Broker ──────
 
 @router.post("/validate-broker")
-def validate_broker_endpoint(req: BrokerValidateRequest):
+def validate_broker_endpoint(req: BrokerValidateRequest, request: Request):
+    _assert_local_broker_access(request)
     api_key, secret_key, base_url = _resolve_broker_credentials(
         req.broker,
         req.api_key,
@@ -559,7 +576,8 @@ def validate_broker_endpoint(req: BrokerValidateRequest):
 
 
 @router.get("/broker/defaults")
-def get_broker_defaults():
+def get_broker_defaults(request: Request):
+    _assert_local_broker_access(request)
     _reload_runtime_config()
     return {
         "alpaca": {
@@ -592,7 +610,8 @@ def get_broker_defaults():
 
 
 @router.post("/broker/fyers/login-url")
-def create_fyers_login_url(req: FyersLoginUrlRequest):
+def create_fyers_login_url(req: FyersLoginUrlRequest, request: Request):
+    _assert_local_broker_access(request)
     api_key, app_secret, redirect_uri = _resolve_fyers_auth_settings(
         req.api_key,
         req.app_secret,
@@ -614,7 +633,8 @@ def create_fyers_login_url(req: FyersLoginUrlRequest):
 
 
 @router.post("/broker/fyers/exchange-token")
-def fyers_exchange_token(req: FyersTokenExchangeRequest):
+def fyers_exchange_token(req: FyersTokenExchangeRequest, request: Request):
+    _assert_local_broker_access(request)
     api_key, app_secret, redirect_uri = _resolve_fyers_auth_settings(
         req.api_key,
         req.app_secret,
@@ -631,7 +651,8 @@ def fyers_exchange_token(req: FyersTokenExchangeRequest):
 
 
 @router.post("/broker/fyers/save-session")
-def save_fyers_session(req: FyersSaveSessionRequest):
+def save_fyers_session(req: FyersSaveSessionRequest, request: Request):
+    _assert_local_broker_access(request)
     api_key, app_secret, redirect_uri = _resolve_fyers_auth_settings(
         req.api_key,
         req.app_secret,

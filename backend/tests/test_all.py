@@ -64,6 +64,16 @@ def equity_curve(sample_df):
     return [{"date": str(d.date()), "value": v} for d, v in zip(sample_df.index, values)]
 
 
+@pytest.fixture
+def local_request():
+    return SimpleNamespace(client=SimpleNamespace(host="127.0.0.1"))
+
+
+@pytest.fixture
+def remote_request():
+    return SimpleNamespace(client=SimpleNamespace(host="10.10.10.10"))
+
+
 # ─────────────────────────────────────────────────────────────
 # Data Ingestion Tests
 # ─────────────────────────────────────────────────────────────
@@ -813,14 +823,14 @@ class TestApiRoutes:
             "https://paper-api.alpaca.markets",
         )
 
-    def test_broker_defaults_reports_fyers_env_status(self, monkeypatch):
+    def test_broker_defaults_reports_fyers_env_status(self, monkeypatch, local_request):
         monkeypatch.setattr(api_routes, "_reload_runtime_config", lambda: None)
         monkeypatch.setattr(api_routes.config, "FYERS_APP_ID", "APP-123")
         monkeypatch.setattr(api_routes.config, "FYERS_SECRET_KEY", "SECRET-123")
         monkeypatch.setattr(api_routes.config, "FYERS_ACCESS_TOKEN", "TOKEN-123")
         monkeypatch.setattr(api_routes.config, "FYERS_REDIRECT_URI", "http://localhost:5173/broker/fyers/callback")
 
-        defaults = api_routes.get_broker_defaults()
+        defaults = api_routes.get_broker_defaults(local_request)
 
         assert defaults["fyers"]["has_api_key"] is True
         assert defaults["fyers"]["has_secret_key"] is True
@@ -830,7 +840,7 @@ class TestApiRoutes:
         assert defaults["fyers"]["redirect_uri_valid"] is True
         assert defaults["fyers"]["redirect_uri"] == "http://localhost:5173/broker/fyers/callback"
 
-    def test_fyers_login_url_uses_env_defaults(self, monkeypatch):
+    def test_fyers_login_url_uses_env_defaults(self, monkeypatch, local_request):
         monkeypatch.setattr(api_routes, "_reload_runtime_config", lambda: None)
         monkeypatch.setattr(api_routes.config, "FYERS_APP_ID", "APP-123")
         monkeypatch.setattr(api_routes.config, "FYERS_SECRET_KEY", "SECRET-123")
@@ -848,7 +858,7 @@ class TestApiRoutes:
             }) or "https://fyers.example/login",
         )
 
-        res = api_routes.create_fyers_login_url(api_routes.FyersLoginUrlRequest())
+        res = api_routes.create_fyers_login_url(api_routes.FyersLoginUrlRequest(), local_request)
 
         assert res["auth_url"] == "https://fyers.example/login"
         assert captured["api_key"] == "APP-123"
@@ -856,7 +866,7 @@ class TestApiRoutes:
         assert captured["redirect_uri"] == "http://localhost:5173/broker/fyers/callback"
         assert captured["state"].startswith("quantforge-")
 
-    def test_fyers_exchange_token_uses_env_defaults(self, monkeypatch):
+    def test_fyers_exchange_token_uses_env_defaults(self, monkeypatch, local_request):
         monkeypatch.setattr(api_routes, "_reload_runtime_config", lambda: None)
         monkeypatch.setattr(api_routes.config, "FYERS_APP_ID", "APP-123")
         monkeypatch.setattr(api_routes.config, "FYERS_SECRET_KEY", "SECRET-123")
@@ -874,7 +884,7 @@ class TestApiRoutes:
             }) or {"status": "ok", "access_token": "TOKEN"},
         )
 
-        res = api_routes.fyers_exchange_token(api_routes.FyersTokenExchangeRequest(auth_code="AUTH-CODE"))
+        res = api_routes.fyers_exchange_token(api_routes.FyersTokenExchangeRequest(auth_code="AUTH-CODE"), local_request)
 
         assert res["access_token"] == "TOKEN"
         assert captured == {
@@ -884,7 +894,7 @@ class TestApiRoutes:
             "auth_code": "AUTH-CODE",
         }
 
-    def test_save_fyers_session_persists_env_and_runtime_config(self, monkeypatch, tmp_path):
+    def test_save_fyers_session_persists_env_and_runtime_config(self, monkeypatch, tmp_path, local_request):
         env_path = tmp_path / ".env"
         env_path.write_text("HOST=0.0.0.0\n", encoding="utf-8")
 
@@ -899,7 +909,7 @@ class TestApiRoutes:
             app_secret="SECRET-123",
             redirect_uri="http://localhost:5173/broker/fyers/callback",
             access_token="TOKEN-123",
-        ))
+        ), local_request)
 
         env_text = env_path.read_text(encoding="utf-8")
         assert res["saved"] is True
@@ -912,7 +922,7 @@ class TestApiRoutes:
         assert api_routes.config.FYERS_REDIRECT_URI == "http://localhost:5173/broker/fyers/callback"
         assert api_routes.config.FYERS_ACCESS_TOKEN == "TOKEN-123"
 
-    def test_save_fyers_session_allows_manual_mode_redirect_uri(self, monkeypatch, tmp_path):
+    def test_save_fyers_session_allows_manual_mode_redirect_uri(self, monkeypatch, tmp_path, local_request):
         env_path = tmp_path / ".env"
         env_path.write_text("", encoding="utf-8")
 
@@ -927,14 +937,14 @@ class TestApiRoutes:
             app_secret="SECRET-123",
             redirect_uri="https://www.google.com",
             access_token="TOKEN-123",
-        ))
+        ), local_request)
 
         env_text = env_path.read_text(encoding="utf-8")
         assert res["saved"] is True
         assert res["callback_ready"] is False
         assert "FYERS_REDIRECT_URI=https://www.google.com" in env_text
 
-    def test_save_fyers_session_strips_app_id_prefix_from_access_token(self, monkeypatch, tmp_path):
+    def test_save_fyers_session_strips_app_id_prefix_from_access_token(self, monkeypatch, tmp_path, local_request):
         env_path = tmp_path / ".env"
         env_path.write_text("", encoding="utf-8")
 
@@ -949,14 +959,14 @@ class TestApiRoutes:
             app_secret="SECRET-123",
             redirect_uri="https://www.google.com",
             access_token="APP-123:RAW-TOKEN-123",
-        ))
+        ), local_request)
 
         env_text = env_path.read_text(encoding="utf-8")
         assert res["saved"] is True
         assert "FYERS_ACCESS_TOKEN=RAW-TOKEN-123" in env_text
         assert api_routes.config.FYERS_ACCESS_TOKEN == "RAW-TOKEN-123"
 
-    def test_fyers_login_url_allows_manual_mode_redirect_uri(self, monkeypatch):
+    def test_fyers_login_url_allows_manual_mode_redirect_uri(self, monkeypatch, local_request):
         monkeypatch.setattr(api_routes, "_reload_runtime_config", lambda: None)
         monkeypatch.setattr(api_routes.config, "FYERS_APP_ID", "APP-123")
         monkeypatch.setattr(api_routes.config, "FYERS_SECRET_KEY", "SECRET-123")
@@ -974,13 +984,13 @@ class TestApiRoutes:
             }) or "https://fyers.example/login-manual",
         )
 
-        res = api_routes.create_fyers_login_url(api_routes.FyersLoginUrlRequest())
+        res = api_routes.create_fyers_login_url(api_routes.FyersLoginUrlRequest(), local_request)
 
         assert res["auth_url"] == "https://fyers.example/login-manual"
         assert captured["redirect_uri"] == "https://www.google.com"
         assert captured["state"].startswith("quantforge-")
 
-    def test_broker_defaults_reload_env_file_without_restart(self, monkeypatch, tmp_path):
+    def test_broker_defaults_reload_env_file_without_restart(self, monkeypatch, tmp_path, local_request):
         env_path = tmp_path / ".env"
         env_path.write_text(
             "FYERS_APP_ID=APP-123\n"
@@ -992,12 +1002,30 @@ class TestApiRoutes:
         monkeypatch.setattr(api_routes.config, "ENV_FILE", str(env_path))
         monkeypatch.setattr(api_routes.config, "FYERS_REDIRECT_URI", "http://localhost:5173/broker/fyers/callback")
 
-        defaults = api_routes.get_broker_defaults()
+        defaults = api_routes.get_broker_defaults(local_request)
 
         assert defaults["fyers"]["redirect_uri"] == "https://www.google.com"
         assert defaults["fyers"]["redirect_uri_valid"] is False
         assert defaults["fyers"]["redirect_uri_absolute"] is True
         assert defaults["fyers"]["auth_ready"] is True
+
+    def test_remote_request_cannot_read_broker_defaults(self, remote_request):
+        with pytest.raises(Exception) as exc:
+            api_routes.get_broker_defaults(remote_request)
+        assert getattr(exc.value, "status_code", None) == 403
+
+    def test_remote_request_cannot_save_fyers_session(self, remote_request):
+        with pytest.raises(Exception) as exc:
+            api_routes.save_fyers_session(
+                api_routes.FyersSaveSessionRequest(
+                    api_key="APP-123",
+                    app_secret="SECRET-123",
+                    redirect_uri="https://www.google.com",
+                    access_token="TOKEN-123",
+                ),
+                remote_request,
+            )
+        assert getattr(exc.value, "status_code", None) == 403
 
 
 class TestBrokerConnector:
