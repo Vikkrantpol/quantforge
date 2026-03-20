@@ -7,7 +7,7 @@ ENV_FILE = os.path.join(PROJECT_ROOT, ".env")
 def reload_settings():
     file_values = dotenv_values(ENV_FILE) if os.path.exists(ENV_FILE) else {}
     current_values = {
-        "HOST": globals().get("HOST", "0.0.0.0"),
+        "HOST": globals().get("HOST", "127.0.0.1"),
         "PORT": str(globals().get("PORT", "8010")),
         "FRONTEND_URL": globals().get("FRONTEND_URL", "http://localhost:5173"),
         "ALPACA_API_KEY": globals().get("ALPACA_API_KEY", ""),
@@ -33,7 +33,7 @@ def reload_settings():
     global KITE_API_KEY, KITE_ACCESS_TOKEN
     global FYERS_APP_ID, FYERS_SECRET_KEY, FYERS_REDIRECT_URI, FYERS_ACCESS_TOKEN
 
-    HOST = read("HOST", "0.0.0.0")
+    HOST = read("HOST", "127.0.0.1")
     PORT = int(read("PORT", "8010"))
     FRONTEND_URL = read("FRONTEND_URL", "http://localhost:5173")
 

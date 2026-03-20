@@ -14,6 +14,7 @@ __pycache__/
 
 # Runtime state
 .pids
+plan.md
 
 # Backend generated data
 backend/data/*.db

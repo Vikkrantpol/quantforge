@@ -240,7 +240,7 @@ if ! $FRONTEND_ONLY; then
   log "Starting FastAPI backend on :$BACKEND_PORT ..."
   cd "$BACKEND_DIR"
   PYTHONPATH="$ROOT" "$VENV_PYTHON" -m uvicorn main:app \
-    --host 0.0.0.0 \
+    --host 127.0.0.1 \
     --port "$BACKEND_PORT" \
     --reload \
     --log-level warning &

@@ -10,11 +10,24 @@ import { Wifi, WifiOff } from 'lucide-react'
 
 const BROKER_STORAGE_KEY = 'quantforge.brokerConfig'
 
+function sanitizeBrokerConfigForStorage(config) {
+  if (!config?.broker) return null
+  return {
+    broker: config.broker,
+    api_key: '',
+    secret_key: '',
+    base_url: config.base_url || '',
+    app_secret: '',
+    redirect_uri: config.redirect_uri || '',
+  }
+}
+
 function loadStoredBrokerConfig() {
   if (typeof window === 'undefined') return null
   try {
     const raw = window.localStorage.getItem(BROKER_STORAGE_KEY)
-    return raw ? JSON.parse(raw) : null
+    const parsed = raw ? JSON.parse(raw) : null
+    return sanitizeBrokerConfigForStorage(parsed)
   } catch {
     return null
   }
@@ -46,7 +59,10 @@ export default function App() {
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (brokerConfig?.broker) {
-      window.localStorage.setItem(BROKER_STORAGE_KEY, JSON.stringify(brokerConfig))
+      window.localStorage.setItem(
+        BROKER_STORAGE_KEY,
+        JSON.stringify(sanitizeBrokerConfigForStorage(brokerConfig))
+      )
     } else {
       window.localStorage.removeItem(BROKER_STORAGE_KEY)
     }
